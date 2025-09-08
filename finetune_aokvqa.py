@@ -53,7 +53,6 @@ def parse_args():
     return args
 
 def init_seeds(seed=42, cuda_deterministic=True):
-    """单卡种子初始化"""
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -71,7 +70,6 @@ def prepare_inputs_outputs(args, data):
     key_informations = data["key_information"]
     key_reasons = data["key_reason"]
 
-    # 构建输入的选项列表
     if args.multi_choices:
         options_0 = data["option_0"]
         options_1 = data["option_1"]
@@ -93,7 +91,6 @@ def prepare_inputs_outputs(args, data):
         ]
 
     if args.use_knowledge:
-        # 修改输入形式
         input_prefix = "Answer in format: Because of [knowledge], so the answer is [short answer].\n\n"
         text_input = [input_prefix + s for s in text_input]
 
@@ -120,7 +117,6 @@ def prepare_inputs_outputs(args, data):
 
 @torch.no_grad()
 def eval(args, val_loader, model):
-    """验证阶段：计算损失和准确率，并输出示例"""
     model.eval()
     torch.cuda.empty_cache() 
     val_loss = 0
@@ -146,14 +142,12 @@ def eval(args, val_loader, model):
             "temperature":0.7,
             "top_p":0.9,
             }
-        with torch.cuda.amp.autocast(enabled=True, dtype=model.dtype): # 前后开启autocast
+        with torch.cuda.amp.autocast(enabled=True, dtype=model.dtype): 
             with torch.no_grad():
                 outputs = model(samples)
                 pred_texts = model.generate(samples, **generate_kwargs)
 
-                answer_pattern = re.compile(r"answer is (.*?)(?=\.)") # 匹配"so the answer is"之后的内容直到句号
-
-                # 正则表达式提取模型输出答案
+                answer_pattern = re.compile(r"answer is (.*?)(?=\.)") 
                 preds_answers = []
                 for pred in pred_texts:
                     match = answer_pattern.search(pred)
@@ -161,11 +155,8 @@ def eval(args, val_loader, model):
                         extracted_answer = match.group(1).strip()
                         preds_answers.append(extracted_answer)
                     else:
-                        # 使用提取后的答案进行评分
                         preds_answers.append(pred.split("answer is")[-1].strip() if "answer is" in pred else pred) 
 
-
-        # 取模型输出的最后的单词作为答案
         loss = outputs['loss']
         loss_knowledge = outputs['loss_knowledge']
         loss_answer = outputs['loss_answer']
@@ -187,7 +178,6 @@ def eval(args, val_loader, model):
                 print(text_output[i])
                 print()
 
-    # 对不同进程上的评价指标进行平均
     val_loss = round(val_loss/len(val_loader), 4)
     val_knowledge_loss = round(val_knowledge_loss / len(val_loader), 4)
     val_answer_loss = round(val_answer_loss / len(val_loader), 4)
@@ -216,13 +206,12 @@ def train(args, train_dataset, val_dataset, model):
         num_workers=4
     )
 
-    # 初始化优化器
     optimizer = torch.optim.AdamW(filter(lambda p : p.requires_grad, model.parameters()), lr = args.lr, betas=(0.9, 0.98), eps=1e-6, weight_decay=0)
 
     max_score = 0
     save_socre = 0.69
 
-    scaler = torch.cuda.amp.GradScaler() # 训练前实例化一个GradScaler对象
+    scaler = torch.cuda.amp.GradScaler()
 
     for epoch in range(args.epoch):
         model.train()
@@ -241,8 +230,8 @@ def train(args, train_dataset, val_dataset, model):
                     "key_information": data["key_information"]
                 }
 
-            with torch.cuda.amp.autocast(enabled=True, dtype=model.dtype): # 开启混合精度
-                outputs = model(samples) # forward
+            with torch.cuda.amp.autocast(enabled=True, dtype=model.dtype): 
+                outputs = model(samples) 
                 with torch.no_grad():
                     pred_texts = ['N/A' for i in range(args.bs)]
 
@@ -278,14 +267,12 @@ def train(args, train_dataset, val_dataset, model):
                         f'{args.experiment_path}/model_epoch{epoch+1}_score{val_vqa_score:.4f}.pth'
                     )
 
-            # 梯度放大 & 更新
             scaler.scale(loss).backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)  # 防止梯度爆炸
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)  
             scaler.step(optimizer)
             scaler.update()
             optimizer.zero_grad()
 
-        # 对不同进程上的评价指标进行平均
         train_loss = round(train_loss/len(train_loader), 4)
         val_loss, val_knowledge_loss, val_answer_loss, val_vqa_score = eval(args, val_loader, model)
         
@@ -319,11 +306,10 @@ def train(args, train_dataset, val_dataset, model):
 if __name__ == '__main__':
     args = parse_args()
 
-    # from datasets.aokvqa_dataset_1 import AOKVQADataset
-    from datasets.aokvqa_dataset_2 import AOKVQADataset
+    from datasets.aokvqa_dataset import AOKVQADataset
     if args.dataset == 'aokvqa':
-        train_dataset = AOKVQADataset(data_path = "/QA-Prompts/MY_DATA/AOK_0.36/aok_train.json", img_path = os.path.join(args.coco_path, 'train2017'))
-        val_dataset = AOKVQADataset(data_path = "/QA-Prompts/MY_DATA/AOK_0.36/aok_val.json", img_path = os.path.join(args.coco_path, 'val2017'))
+        train_dataset = AOKVQADataset(data_path = "/BiFS/MY_DATA/aok_train.json", img_path = os.path.join(args.coco_path, 'train2017'))
+        val_dataset = AOKVQADataset(data_path = "/BiFS/MY_DATA/aok_val.json", img_path = os.path.join(args.coco_path, 'val2017'))
 
     print(f"Train dataset size: {len(train_dataset)}")
     print(f"Val dataset size: {len(val_dataset)}")

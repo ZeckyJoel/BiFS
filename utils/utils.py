@@ -110,7 +110,7 @@ def compute_acc(bs, labels, preds):
             pattern = r'\([A-Z]+\)\s+(.+)'
             match = re.search(pattern, label)
             if match:
-                answer = match.group(1).replace(".","")  # 获取第一个捕获组的内容
+                answer = match.group(1).replace(".","")  
 
                 if answer.lower() in pred.lower():
                     acc+=1
@@ -125,23 +125,6 @@ def compute_acc(bs, labels, preds):
     return acc/bs
 
 def compute_vqa_score(bs, preds, direct_answers_texts):
-    """
-    计算 VQA（Visual Question Answering）任务的评分。
-    
-    参数:
-    - bs (int): 批次大小，即样本数量。
-    - preds (List[str]): 模型预测的答案列表，每个元素是一个答案字符串。
-    - direct_answers_texts (List[str]): 真实答案的文本列表，每个元素是包含多个答案的字符串，格式类似 "[answer1, answer2, ...]"。
-
-    返回:
-    - float: 标准化后的平均得分，范围在 [0, 1] 之间。
-
-    说明:
-    - 对于每个样本，预测答案会被转换为小写，并与真实答案列表中的所有选项进行匹配。
-    - 真实答案列表是从 direct_answers_texts 中提取并处理过的，去除引号、方括号后按逗号分割成列表。
-    - 每个正确匹配的答案会根据其出现频率计算得分，最多得分为 1（如果一个答案出现了三次或更多）。
-    - 最终返回的是所有样本得分的平均值。
-    """
     score = 0
     for i in range(bs):
         pred = preds[i].lower()
