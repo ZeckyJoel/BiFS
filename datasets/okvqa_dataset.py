@@ -6,6 +6,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 from utils.utils import *
 
+###
 
 def load_okvqa(data_path):
     entries = []

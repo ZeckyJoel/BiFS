@@ -85,8 +85,8 @@ The figures show:
 - **Judger**: Processes the conflict set to determine whether an entity is the focal object. 
 - **Reasoner**: Synthesizes the selected focal context and rationales into a coherent knowledge reasoning chain.
 
-![](.\resources\case1.jpg)
+<img src=".\resources\case1.jpg" title="" alt="" width="">
 
-![](.\resources\case2.jpg)
+<img src=".\resources\case2.jpg" title="" alt="" width="">
 
-![](.\resources\case3.jpg)
+<img src=".\resources\case3.jpg" title="" alt="" width="">

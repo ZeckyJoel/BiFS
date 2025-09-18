@@ -23,8 +23,8 @@ sympy==1.14.0
 tokenizers==0.15.2
 torch @ file:///root/lanyun-tmp/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl#sha256=b3ac139e0d4a0b303cc16f51eb77146ec7d14c0b1e702ad638613628f5086af7
 torchvision @ file:///root/lanyun-tmp/torchvision-0.14.1%2Bcu117-cp39-cp39-linux_x86_64.whl#sha256=8a89a0ee007d7cdba53bd56426d8795060a064b8919b61ac39e00e399ded6be2
-tqdm==4.67.0
 transformers==4.37.2
 triton==3.3.1
 typing_extensions==4.14.0
 urllib3==2.4.0
+

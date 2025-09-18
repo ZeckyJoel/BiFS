@@ -7,6 +7,8 @@ from IPython.display import display, Image as IPImage
 import random
 from tqdm import tqdm
 
+###
+
 prompt_cap = """
 <|Instruction|>
 Please perform an image description task: identify the objects in the image along with their attributes, and provide a brief description of each object.
